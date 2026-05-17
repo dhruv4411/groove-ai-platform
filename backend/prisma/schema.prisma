@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CampaignInsight {
+  id             Int      @id @default(autoincrement())
+
+  campaignId     String
+  campaignName   String
+
+  impressions    Int?
+  clicks         Int?
+  spend          Float?
+
+  ctr            Float?
+  cpc            Float?
+
+  reach          Int?
+
+  dateStart      DateTime
+  dateStop       DateTime
+
+  createdAt      DateTime @default(now())
+}
