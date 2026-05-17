@@ -1,105 +1,77 @@
 import { Request, Response } from 'express';
 
-import { prisma } from '../db/prisma';
+import {
+  fetchMetaCampaigns,
+  fetchCampaignInsights,
+} from '../services/meta.service';
 
-import { getMockCampaignInsights } from '../services/meta.service';
-
-import { generateAIInsights } from '../services/ai.service';
-
-
-// Sync mock campaign data into database
-export const syncCampaignInsights = async (
+export const syncCampaigns = async (
   req: Request,
   res: Response
 ) => {
+
   try {
 
-    const insights = await getMockCampaignInsights();
+    const campaignsResponse =
+      await fetchMetaCampaigns();
 
-    for (const insight of insights) {
+    const campaigns =
+      campaignsResponse.data || [];
 
-      await prisma.campaignInsight.create({
-        data: insight,
-      });
+    const campaignInsights = await Promise.all(
+      campaigns.map(async (campaign: any) => {
 
-    }
+        const insightsResponse =
+          await fetchCampaignInsights(
+            campaign.id
+          );
 
-    res.json({
-      success: true,
-      message: 'Campaign insights synced successfully',
-      data: insights,
-    });
+        const insight =
+          insightsResponse.data?.[0] || {};
 
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to sync insights',
-    });
-
-  }
-};
-
-
-// Fetch all campaign insights
-export const getCampaignInsights = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-
-    const insights = await prisma.campaignInsight.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    res.json({
-      success: true,
-      data: insights,
-    });
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch insights',
-    });
-
-  }
-};
-
-
-// Generate AI insights
-export const getAIInsights = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-
-    const campaigns = await prisma.campaignInsight.findMany();
-
-    const aiInsights = campaigns.map((campaign) =>
-      generateAIInsights(campaign)
+        return {
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+          impressions: Number(
+            insight.impressions || 0
+          ),
+          clicks: Number(
+            insight.clicks || 0
+          ),
+          spend: Number(
+            insight.spend || 0
+          ),
+          ctr: Number(
+            insight.ctr || 0
+          ),
+          cpc: Number(
+            insight.cpc || 0
+          ),
+          reach: Number(
+            insight.reach || 0
+          ),
+        };
+      })
     );
 
-    res.json({
+    return res.status(200).json({
       success: true,
-      data: aiInsights,
+      data: campaignInsights,
     });
 
-  } catch (error) {
+  } catch (error: any) {
 
-    console.error(error);
+    console.error(
+      'FULL META ERROR:',
+      error.response?.data || error.message
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Failed to generate AI insights',
+      message: 'Failed to sync campaigns',
+      error:
+        error.response?.data ||
+        error.message,
     });
-
   }
 };

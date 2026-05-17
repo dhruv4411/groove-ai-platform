@@ -1,37 +1,66 @@
-export const getMockCampaignInsights = async () => {
-  return [
-    {
-      campaignId: 'cmp_001',
-      campaignName: 'Summer Sale Campaign',
+import axios from 'axios';
 
-      impressions: 120000,
-      clicks: 4200,
-      spend: 850.5,
+const ACCESS_TOKEN =
+  process.env.META_ACCESS_TOKEN;
 
-      ctr: 3.5,
-      cpc: 0.2,
+const ACCOUNT_ID =
+  process.env.META_AD_ACCOUNT_ID;
 
-      reach: 90000,
+export const fetchMetaCampaigns = async () => {
 
-      dateStart: new Date('2025-05-01'),
-      dateStop: new Date('2025-05-15'),
-    },
+  try {
 
-    {
-      campaignId: 'cmp_002',
-      campaignName: 'Retargeting Campaign',
+    const response = await axios.get(
+      `https://graph.facebook.com/v19.0/${ACCOUNT_ID}/campaigns`,
+      {
+        params: {
+          access_token: ACCESS_TOKEN,
+          fields: 'id,name,status',
+        },
+      }
+    );
 
-      impressions: 95000,
-      clicks: 3100,
-      spend: 640.75,
+    return response.data;
 
-      ctr: 3.2,
-      cpc: 0.21,
+  } catch (error: any) {
 
-      reach: 70000,
+    console.error(
+      'META ERROR:',
+      error.response?.data || error.message
+    );
 
-      dateStart: new Date('2025-05-05'),
-      dateStop: new Date('2025-05-20'),
-    },
-  ];
+    throw error;
+  }
+};
+
+export const fetchCampaignInsights = async (
+  campaignId: string
+) => {
+
+  try {
+
+    const response = await axios.get(
+      `https://graph.facebook.com/v19.0/${campaignId}/insights`,
+      {
+        params: {
+          access_token: ACCESS_TOKEN,
+          fields:
+            'impressions,clicks,spend,ctr,cpc,reach',
+          date_preset: 'last_30d',
+          level: 'campaign',
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error: any) {
+
+    console.error(
+      'INSIGHTS ERROR:',
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
 };
