@@ -41,7 +41,7 @@ function App() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:3000/api/meta/sync"
+        "https://groove-ai-platform.onrender.com/api/meta/sync"
       );
 
       const data = await response.json();
@@ -63,7 +63,7 @@ function App() {
       setAiLoading(true);
 
       const response = await fetch(
-        "http://localhost:3000/api/chat",
+        "https://groove-ai-platform.onrender.com/api/chat",
         {
           method: "POST",
           headers: {
