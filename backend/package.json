@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/index.ts"
-  },
+ "scripts": {
+  "dev": "nodemon src/index.ts",
+  "start": "tsx src/index.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -18,7 +19,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "openai": "^6.38.0",
-    "prisma": "^5.22.0"
+    "prisma": "^5.22.0",
+    "tsx": "^4.22.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
