@@ -1,6 +1,16 @@
 # Groove AI Platform
 
-AI-powered Meta Ads analytics dashboard with real-time campaign insights, interactive analytics, and AI-generated optimization recommendations.
+AI-powered Meta Ads analytics dashboard with real-time campaign insights, AI recommendations, interactive analytics, and full-stack cloud deployment.
+
+---
+
+# Live Demo
+
+## Frontend Deployment
+🔗 https://groove-ai-platform.vercel.app/
+
+## Backend Deployment
+🔗 https://groove-ai-platform.onrender.com
 
 ---
 
@@ -16,6 +26,7 @@ AI-powered Meta Ads analytics dashboard with real-time campaign insights, intera
 - Real-time campaign performance tracking
 - Gemini AI integration
 - Prisma ORM backend architecture
+- Cloud deployment using Vercel & Render
 
 ---
 
@@ -36,7 +47,11 @@ AI-powered Meta Ads analytics dashboard with real-time campaign insights, intera
 
 ## APIs
 - Meta Marketing API
-- Gemini API
+- Gemini AI API
+
+## Deployment
+- Vercel
+- Render
 
 ---
 
@@ -68,11 +83,9 @@ groove-ai-platform/
 ├── backend/
 │   ├── prisma/
 │   ├── src/
-│   │   ├── config/
 │   │   ├── controllers/
 │   │   ├── routes/
 │   │   ├── services/
-│   │   ├── utils/
 │   │   └── index.ts
 │   │
 │   ├── .env
@@ -119,7 +132,7 @@ PORT=3000
 ## Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/groove-ai-platform.git
+git clone https://github.com/dhruv4411/groove-ai-platform.git
 ```
 
 ---
@@ -233,6 +246,20 @@ Implemented using Recharts:
 
 ---
 
+# Deployment Architecture
+
+```text
+Frontend (React + Vercel)
+        ↓
+Backend API (Express + Render)
+        ↓
+Meta Ads API + Gemini AI
+        ↓
+Supabase PostgreSQL
+```
+
+---
+
 # Future Improvements
 
 - User authentication
@@ -250,6 +277,12 @@ Implemented using Recharts:
 Dhruv Gupta
 
 Delhi Technological University (DTU)
+
+---
+
+# GitHub Repository
+
+🔗 https://github.com/dhruv4411/groove-ai-platform
 
 ---
 
