@@ -260,6 +260,134 @@ Supabase PostgreSQL
 
 ---
 
+# Prompt Engineering
+
+The AI assistant uses structured prompts to ensure consistent and relevant campaign recommendations.
+
+## System Prompt Strategy
+
+The backend AI route uses a system prompt similar to:
+
+```text
+You are an AI marketing assistant for Meta Ads campaigns.
+Provide concise, practical, and actionable campaign optimization advice.
+Focus on CTR, CPC, audience targeting, creatives, and campaign scaling.
+```
+
+## Why This Helps
+
+The system prompt:
+- keeps responses marketing-focused
+- prevents unrelated outputs
+- improves consistency
+- ensures concise recommendations
+- reduces hallucinated responses
+
+---
+
+# Security Considerations
+
+## SQL Injection Risks
+
+Allowing an LLM to directly generate database queries can introduce SQL Injection risks if user input is not validated.
+
+Example Risk:
+
+```sql
+DROP TABLE campaigns;
+```
+
+If executed directly, malicious queries could:
+- delete database records
+- expose sensitive data
+- corrupt analytics systems
+
+---
+
+## Mitigation Strategies
+
+### 1. Parameterized Queries
+Use Prisma ORM and parameterized database operations instead of raw SQL.
+
+### 2. Input Validation
+Validate and sanitize all user inputs before processing.
+
+### 3. Restricted Query Access
+Never allow the AI model to directly execute arbitrary SQL queries.
+
+### 4. Read-Only Permissions
+Use restricted database roles with limited permissions.
+
+### 5. Backend Authorization Layer
+All AI requests pass through backend validation before accessing data.
+
+---
+
+# Scaling Strategy
+
+## Problem
+
+Large-scale databases with millions of campaign rows cannot be fully passed into the LLM prompt context due to:
+- token limitations
+- latency issues
+- high inference cost
+
+---
+
+# Scalable Architecture Approach
+
+## 1. Retrieval-Based Querying
+
+Instead of sending all records:
+- fetch only relevant campaign subsets
+- use filters and aggregation queries
+- provide summarized analytics to the model
+
+Example:
+- top performing campaigns
+- campaigns with low CTR
+- highest spend campaigns
+
+---
+
+## 2. Pre-Aggregated Analytics
+
+Store summarized metrics such as:
+- average CTR
+- total spend
+- top campaigns
+- CPC trends
+
+This reduces prompt size significantly.
+
+---
+
+## 3. Vector Search / RAG
+
+For enterprise-scale systems:
+- use embeddings
+- vector databases
+- Retrieval-Augmented Generation (RAG)
+
+This allows semantic retrieval of only relevant records.
+
+---
+
+## 4. Pagination & Windowing
+
+Load campaign data in chunks rather than full-table scans.
+
+---
+
+## 5. Background Processing
+
+Heavy analytics workloads can be processed asynchronously using:
+- queues
+- cron jobs
+- worker services
+
+---
+
 # Future Improvements
 
 - User authentication
