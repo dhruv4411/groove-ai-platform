@@ -1,22 +1,25 @@
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-dotenv.config();
+import metaRoutes from "./routes/meta.routes";
+import chatRoutes from "./routes/chat.routes";
 
-import express from 'express';
-import cors from 'cors';
-
-import metaRoutes from './routes/meta.routes';
+dotenv.config({ override: true });
 
 const app = express();
 
 app.use(cors());
+
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Groove AI Backend Running');
-});
+app.use("/api/meta", metaRoutes);
 
-app.use('/api/meta', metaRoutes);
+app.use("/api/chat", chatRoutes);
+
+app.get("/", (_, res) => {
+  res.send("Groove AI Backend Running");
+});
 
 const PORT = process.env.PORT || 3000;
 

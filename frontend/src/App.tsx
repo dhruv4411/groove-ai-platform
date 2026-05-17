@@ -1,5 +1,20 @@
-import { useEffect, useState } from 'react';
-import './App.css';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
+import "./App.css";
 
 interface Campaign {
   campaignId: string;
@@ -13,41 +28,61 @@ interface Campaign {
 }
 
 function App() {
-
-  const [campaigns, setCampaigns] = useState<
-    Campaign[]
-  >([]);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [question, setQuestion] =
-    useState('');
-
-  const [answer, setAnswer] =
-    useState('');
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [search, setSearch] = useState("");
 
   const fetchCampaigns = async () => {
-
     try {
-
       setLoading(true);
 
       const response = await fetch(
-        'http://localhost:3000/api/meta/sync'
+        "http://localhost:3000/api/meta/sync"
       );
 
       const data = await response.json();
 
-      setCampaigns(data.data || []);
-
+      if (data.success) {
+        setCampaigns(data.data);
+      }
     } catch (error) {
-
       console.error(error);
-
     } finally {
-
       setLoading(false);
+    }
+  };
+
+  const askAI = async () => {
+    try {
+      if (!question.trim()) return;
+
+      setAiLoading(true);
+
+      const response = await fetch(
+        "http://localhost:3000/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAnswer(data.answer);
+      }
+    } catch (error) {
+      console.error(error);
+      setAnswer("Server error");
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -55,171 +90,175 @@ function App() {
     fetchCampaigns();
   }, []);
 
+  const filteredCampaigns = useMemo(() => {
+    return campaigns.filter((campaign) =>
+      campaign.campaignName
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
+  }, [campaigns, search]);
+
   const totalSpend = campaigns.reduce(
-    (acc, curr) => acc + curr.spend,
+    (acc, item) => acc + item.spend,
     0
   );
 
   const totalClicks = campaigns.reduce(
-    (acc, curr) => acc + curr.clicks,
+    (acc, item) => acc + item.clicks,
     0
   );
 
   const totalImpressions = campaigns.reduce(
-    (acc, curr) => acc + curr.impressions,
+    (acc, item) => acc + item.impressions,
     0
   );
 
-  const askAI = () => {
-
-    if (
-      question.toLowerCase().includes('best')
-    ) {
-
-      const bestCampaign = [...campaigns].sort(
-        (a, b) => b.ctr - a.ctr
-      )[0];
-
-      setAnswer(
-        `The best performing campaign is ${bestCampaign?.campaignName} with a CTR of ${bestCampaign?.ctr}%.`
-      );
-
-    } else if (
-      question.toLowerCase().includes('spend')
-    ) {
-
-      setAnswer(
-        `Total ad spend is $${totalSpend.toFixed(
-          2
-        )}.`
-      );
-
-    } else {
-
-      setAnswer(
-        'AI insights currently support campaign performance and spend analysis.'
-      );
-    }
-  };
-
   return (
-    <div className="app">
+    <div className={darkMode ? "app" : "app light"}>
+      <div className="container">
+        <div className="hero-section">
+          <div>
+            <h1>Groove AI Dashboard</h1>
+            <p>
+              AI-powered Meta campaign analytics
+            </p>
+          </div>
 
-      <div className="header">
-        <div>
-          <h1>Groove AI Dashboard</h1>
-          <p>
-            AI-powered Meta campaign analytics
-          </p>
+          <div className="hero-actions">
+            <button
+              className="toggle-btn"
+              onClick={() =>
+                setDarkMode(!darkMode)
+              }
+            >
+              {darkMode ? "Light" : "Dark"} Mode
+            </button>
+
+            <button
+              className="sync-button"
+              onClick={fetchCampaigns}
+            >
+              {loading ? "Syncing..." : "Sync"}
+            </button>
+          </div>
         </div>
 
-        <button onClick={fetchCampaigns}>
-          {loading
-            ? 'Syncing...'
-            : 'Sync Campaigns'}
-        </button>
-      </div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <span>Total Spend</span>
+            <h2>${totalSpend.toFixed(2)}</h2>
+          </div>
 
-      <div className="stats-grid">
+          <div className="stat-card">
+            <span>Total Clicks</span>
+            <h2>{totalClicks}</h2>
+          </div>
 
-        <div className="card">
-          <h3>Total Spend</h3>
-          <h2>
-            ${totalSpend.toFixed(2)}
-          </h2>
+          <div className="stat-card">
+            <span>Impressions</span>
+            <h2>{totalImpressions}</h2>
+          </div>
         </div>
 
-        <div className="card">
-          <h3>Total Clicks</h3>
-          <h2>{totalClicks}</h2>
+        <div className="chart-card">
+          <div className="section-header">
+            <h2>Campaign Spend Analytics</h2>
+            <p>Visual campaign comparison</p>
+          </div>
+
+          <ResponsiveContainer
+            width="100%"
+            height={350}
+          >
+            <BarChart data={filteredCampaigns}>
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="campaignName" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar dataKey="spend" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className="card">
-          <h3>Impressions</h3>
-          <h2>{totalImpressions}</h2>
-        </div>
-
-      </div>
-
-      <div className="table-container">
-
-        <h2>Campaign Performance</h2>
-
-        <table>
-
-          <thead>
-            <tr>
-              <th>Campaign</th>
-              <th>Spend</th>
-              <th>Clicks</th>
-              <th>CTR</th>
-              <th>Reach</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {campaigns.map((campaign) => (
-
-              <tr key={campaign.campaignId}>
-                <td>
-                  {campaign.campaignName}
-                </td>
-
-                <td>
-                  ${campaign.spend}
-                </td>
-
-                <td>
-                  {campaign.clicks}
-                </td>
-
-                <td>
-                  {campaign.ctr}%
-                </td>
-
-                <td>
-                  {campaign.reach}
-                </td>
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-      <div className="ai-box">
-
-        <h2>AI Campaign Assistant</h2>
-
-        <div className="ai-input">
+        <div className="table-section">
+          <div className="section-header">
+            <h2>Campaign Performance</h2>
+            <p>
+              Filter and analyze campaigns
+            </p>
+          </div>
 
           <input
-            type="text"
-            placeholder="Ask about campaign performance..."
-            value={question}
+            className="search-input"
+            placeholder="Search campaigns..."
+            value={search}
             onChange={(e) =>
-              setQuestion(e.target.value)
+              setSearch(e.target.value)
             }
           />
 
-          <button onClick={askAI}>
-            Ask AI
-          </button>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Campaign</th>
+                  <th>Spend</th>
+                  <th>Clicks</th>
+                  <th>CTR</th>
+                  <th>Reach</th>
+                </tr>
+              </thead>
 
+              <tbody>
+                {filteredCampaigns.map((campaign) => (
+                  <tr key={campaign.campaignId}>
+                    <td>{campaign.campaignName}</td>
+                    <td>${campaign.spend}</td>
+                    <td>{campaign.clicks}</td>
+                    <td>{campaign.ctr}%</td>
+                    <td>{campaign.reach}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {answer && (
-          <div className="ai-response">
-            {answer}
+        <div className="ai-card">
+          <div className="section-header">
+            <h2>AI Campaign Assistant</h2>
+            <p>
+              Ask questions about campaign insights
+            </p>
           </div>
-        )}
 
+          <div className="ai-input-container">
+            <input
+              type="text"
+              placeholder="How can I improve CTR?"
+              value={question}
+              onChange={(e) =>
+                setQuestion(e.target.value)
+              }
+            />
+
+            <button onClick={askAI}>
+              {aiLoading ? "Thinking..." : "Ask AI"}
+            </button>
+          </div>
+
+          {answer && (
+            <div className="answer-box">
+              <h3>AI Recommendation</h3>
+              <p>{answer}</p>
+            </div>
+          )}
+        </div>
       </div>
-
     </div>
   );
 }
